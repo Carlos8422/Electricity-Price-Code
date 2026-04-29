@@ -190,6 +190,52 @@ fig.legend(loc="upper right")
 plt.tight_layout()
 plt.show()
 
+
+# Time Series: Carbon Intensity + Fuel Mix
+
+
+# Select fuel columns (exclude non-fuel columns)
+fuel_columns = GREEN_FUELS + FOSSIL_FUELS
+
+# Sort dataframe by time (important for plotting)
+df = df.sort_values("datetime")
+
+# Create figure
+fig, ax1 = plt.subplots(figsize=(14, 7))
+
+# Stacked area plot for fuel generation
+ax1.stackplot(
+    df["datetime"],
+    [df[col] for col in fuel_columns],
+    labels=fuel_columns,
+    alpha=0.7
+)
+
+ax1.set_xlabel("Time")
+ax1.set_ylabel("Generation (MW)")
+ax1.set_title("Fuel Mix and Carbon Intensity Over Time")
+
+# Secondary axis for carbon intensity
+ax2 = ax1.twinx()
+ax2.plot(
+    df["datetime"],
+    df["carbonintensity"],
+    linestyle="--",
+    linewidth=2,
+    label="Carbon Intensity"
+)
+
+ax2.set_ylabel("Carbon Intensity (gCO₂/kWh)")
+
+# Combine legends from both axes
+handles1, labels1 = ax1.get_legend_handles_labels()
+handles2, labels2 = ax2.get_legend_handles_labels()
+
+ax1.legend(handles1 + handles2, labels1 + labels2, loc="upper right")
+
+plt.tight_layout()
+plt.show()
+
 # Correlation calculations
 green_corr = df["green_share"].corr(df["price"])
 fossil_corr = df["fossil_share"].corr(df["price"])
