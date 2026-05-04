@@ -191,55 +191,66 @@ plt.tight_layout()
 plt.show()
 
 
-# Time Series: Carbon Intensity + Fuel Mix
+# Define cleaner, grouped color palette
+color_map = {
+    # Renewables (cool / natural tones)
+    "hydro": "#4C78A8",            # blue
+    "nuclear": "#72B7B2",          # teal
+    "other renewables": "#54A24B", # green
+    "solar": "#F2CF5B",            # soft yellow
+    "wind": "#B279A2",             # muted purple
+    
+    # Fossil fuels (warm / darker tones)
+    "coal": "#8C564B",             # brown
+    "gas": "#E45756",              # red-orange
+    "oil": "#7F7F7F"               # gray
+}
 
-
-# Select fuel columns (exclude non-fuel columns)
+# Ensure correct order
 fuel_columns = GREEN_FUELS + FOSSIL_FUELS
 
-# Sort dataframe by time (important for plotting)
+# Sort dataframe
 df = df.sort_values("datetime")
 
-# Create figure
 fig, ax1 = plt.subplots(figsize=(14, 7))
 
-# Stacked area plot for fuel generation
+# Apply colors in correct order
+colors = [color_map[col] for col in fuel_columns]
+
+# Stacked area plot
 ax1.stackplot(
     df["datetime"],
     [df[col] for col in fuel_columns],
     labels=fuel_columns,
-    alpha=0.7
+    colors=colors,
+    alpha=0.85
 )
 
 ax1.set_xlabel("Time")
 ax1.set_ylabel("Generation (MW)")
 ax1.set_title("Fuel Mix and Carbon Intensity Over Time")
 
-# Secondary axis for carbon intensity
+# Carbon intensity (make it POP)
 ax2 = ax1.twinx()
 ax2.plot(
     df["datetime"],
     df["carbonintensity"],
+    color="black",          # strong contrast
     linestyle="--",
-    linewidth=2,
+    linewidth=2.5,
     label="Carbon Intensity"
 )
 
 ax2.set_ylabel("Carbon Intensity (gCO₂/kWh)")
 
-# Combine legends from both axes
+# Combine legends
 handles1, labels1 = ax1.get_legend_handles_labels()
 handles2, labels2 = ax2.get_legend_handles_labels()
 
-ax1.legend(handles1 + handles2, labels1 + labels2, loc="upper right")
+ax1.legend(handles1 + handles2, labels1 + labels2, loc="upper right", fontsize=9)
 
 plt.tight_layout()
 plt.show()
-
-# Correlation calculations
-green_corr = df["green_share"].corr(df["price"])
-fossil_corr = df["fossil_share"].corr(df["price"])
-carbon_corr = df["carbonintensity"].corr(df["price"])
 
 print(f"Correlation (Green Share vs Price): {green_corr:.3f}")
 print(f"Correlation (Fossil Share vs Price): {fossil_corr:.3f}")
