@@ -206,48 +206,89 @@ color_map = {
     "oil": "#7F7F7F"               # gray
 }
 
-# Ensure correct order
+# ================================
+# Fixed One-Week Visualization
+# ================================
+
+import matplotlib.dates as mdates
+
+# Ensure dataframe is sorted
+df = df.sort_values("datetime").reset_index(drop=True)
+
+# Choose a FIXED week from the dataset
+# (change this date if needed)
+start_date = pd.Timestamp("2025-06-01")
+
+# One-week slice
+end_date = start_date + pd.Timedelta(days=60)
+
+week_df = df[
+    (df["datetime"] >= start_date) &
+    (df["datetime"] < end_date)
+].copy()
+
+# =========================================
+# GRAPH 1 — Fuel Mix Over One Week
+# =========================================
+
+fig, ax = plt.subplots(figsize=(14, 6))
+
 fuel_columns = GREEN_FUELS + FOSSIL_FUELS
-
-# Sort dataframe
-df = df.sort_values("datetime")
-
-fig, ax1 = plt.subplots(figsize=(14, 7))
-
-# Apply colors in correct order
 colors = [color_map[col] for col in fuel_columns]
 
-# Stacked area plot
-ax1.stackplot(
-    df["datetime"],
-    [df[col] for col in fuel_columns],
+ax.stackplot(
+    week_df["datetime"],
+    [week_df[col] for col in fuel_columns],
     labels=fuel_columns,
     colors=colors,
     alpha=0.85
 )
 
-ax1.set_xlabel("Time")
-ax1.set_ylabel("Generation (MW)")
-ax1.set_title("Fuel Mix and Carbon Intensity Over Time")
+ax.set_title("Fuel Mix Over 60 Days", fontsize=40)
+ax.set_xlabel("Date", fontsize=30)
+ax.set_ylabel("Generation (MW)", fontsize=30)
+ax.tick_params(axis='both', labelsize=16)
+# Clean date formatting
+ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+fig.autofmt_xdate()
 
-# Carbon intensity (make it POP)
-ax2 = ax1.twinx()
-ax2.plot(
-    df["datetime"],
-    df["carbonintensity"],
-    color="black",          # strong contrast
-    linestyle="--",
-    linewidth=2.5,
-    label="Carbon Intensity"
+ax.legend(
+    loc="upper right",
+    fontsize=20,
+    title="Fuel Types",
+    title_fontsize=14,
+    frameon=True,
+    handlelength=2.8,
+    handleheight=1.8
 )
 
-ax2.set_ylabel("Carbon Intensity (gCO₂/kWh)")
+plt.tight_layout()
+plt.show()
 
-# Combine legends
-handles1, labels1 = ax1.get_legend_handles_labels()
-handles2, labels2 = ax2.get_legend_handles_labels()
+# =========================================
+# GRAPH 2 — Carbon Intensity Over One Week
+# =========================================
 
-ax1.legend(handles1 + handles2, labels1 + labels2, loc="upper right", fontsize=9)
+fig, ax = plt.subplots(figsize=(14, 5))
+
+ax.plot(
+    week_df["datetime"],
+    week_df["carbonintensity"],
+    color="black",
+    linestyle="-",
+    linewidth=2.5
+)
+
+ax.set_title("Carbon Intensity Over 60 Days", fontsize=40)
+ax.set_xlabel("Date", fontsize=30)
+ax.set_ylabel("Carbon Intensity (gCO₂/kWh)", fontsize=30)
+ax.tick_params(axis='both', labelsize=16)
+
+# Clean date formatting
+ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+fig.autofmt_xdate()
+
+ax.grid(True)
 
 plt.tight_layout()
 plt.show()
